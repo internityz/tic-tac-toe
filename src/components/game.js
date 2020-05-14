@@ -5,31 +5,44 @@ class Game extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      history: [
-        {
-          squares: Array(9).fill(null),
-        },
-      ],
+      history: {
+        locations: Array(9).fill(null),
+        squareHist: [
+          {
+            squares: Array(9).fill(null),
+          },
+        ],
+      },
       stepNumber: 0,
       xIsNext: true,
     };
   }
 
-  handleClick = (i) => {
-    const history = this.state.history.slice(0, this.state.stepNumber + 1);
-    const current = history[history.length - 1];
+  handleClick = (i, { row, col }) => {
+    const squareHistory = this.state.history.squareHist.slice(
+      0,
+      this.state.stepNumber + 1
+    );
+    const current = squareHistory[squareHistory.length - 1];
     const squares = current.squares.slice(); //create a copy of the squares to modify
+    const locations = this.state.history.locations.slice(
+      0,
+      this.state.stepNumber + 1
+    );
     if (calculateWinner(squares) || squares[i]) {
       return;
     }
     squares[i] = this.state.xIsNext ? "X" : "O";
     this.setState({
-      history: history.concat([
-        {
-          squares: squares,
-        },
-      ]),
-      stepNumber: history.length,
+      history: {
+        locations: locations.concat([{ row, col }]),
+        squareHist: squareHistory.concat([
+          {
+            squares: squares,
+          },
+        ]),
+      },
+      stepNumber: squareHistory.length,
       xIsNext: !this.state.xIsNext,
     });
   };
@@ -42,12 +55,19 @@ class Game extends Component {
   }
 
   render() {
-    const history = this.state.history;
-    const current = history[this.state.stepNumber];
+    const squareHist = this.state.history.squareHist;
+    const current = squareHist[this.state.stepNumber];
     const winner = calculateWinner(current.squares);
-
-    const moves = history.map((step, move) => {
-      const desc = move ? "Go to move #" + move : "Go to game start";
+    const moves = squareHist.map((step, move) => {
+      console.log(this.state.history.locations[move]);
+      const desc = move
+        ? "Go to move #" +
+          move +
+          " " +
+          JSON.stringify(this.state.history.locations[move], (key, value) => {
+            return value;
+          })
+        : "Go to game start";
       return (
         <li key={move}>
           <button onClick={() => this.jumpTo(move)}>{desc}</button>
